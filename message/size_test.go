@@ -8,6 +8,11 @@ func TestSizeLDAPMessage(t *testing.T) {
 
 	var testData = getLDAPMessageTestData()
 	for i, test := range testData {
+		if i == 94 {
+			// skip this test as criticality=false does not need to be serialized. that use cases is only for read function
+			continue
+		}
+
 		message, err := ReadLDAPMessage(&test.bytes)
 		if err != nil {
 			t.Errorf("#%d error at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
