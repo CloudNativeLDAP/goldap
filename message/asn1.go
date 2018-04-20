@@ -249,6 +249,14 @@ func writeInt64(bytes *Bytes, i int64) (size int) {
 	return
 }
 
+func writeLength(bytes *Bytes, i int64) (size int) {
+	for ; i != 0 || size == 0; i >>= 8 { // Write at least one byte even if the value is 0
+		bytes.writeBytes([]byte{byte(i)})
+		size++
+	}
+	return
+}
+
 // parseInt treats the given bytes as a big-endian, signed integer and returns
 // the result.
 func parseInt32(bytes []byte) (int32, error) {
@@ -710,10 +718,13 @@ func sizeTagAndLength(tag int, length int) (size int) {
 	size += 1
 	if length >= 128 {
 		size += 1
+		//size += sizeInt64(int64(length))
 		for length > 255 {
 			size++
 			length >>= 8
 		}
+	} else {
+		//size += 1
 	}
 	return
 }
@@ -724,9 +735,10 @@ func writeTagAndLength(bytes *Bytes, t TagAndLength) (size int) {
 		panic("Can't have a negative length")
 
 	} else if t.Length >= 128 {
-		lengthBytes := writeInt64(bytes, int64(t.Length))
+		lengthBytes := writeLength(bytes, int64(t.Length))
 		bytes.writeBytes([]byte{byte(0x80 | byte(lengthBytes))})
 		size += lengthBytes + 1
+		//size += writeInt64(bytes, int64(t.Length))
 
 	} else if t.Length < 128 {
 		size += bytes.writeBytes([]byte{byte(t.Length)})
