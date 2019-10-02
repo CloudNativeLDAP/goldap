@@ -37,6 +37,10 @@ func (response *BindResponse) readComponents(bytes *Bytes) (err error) {
 	return
 }
 
+func (response *BindResponse) SetSaslData(data *OCTETSTRING) {
+	response.serverSaslCreds = data
+}
+
 func (response BindResponse) write(bytes *Bytes) (size int) {
 	if response.serverSaslCreds != nil {
 		size += response.serverSaslCreds.writeTagged(bytes, classContextSpecific, TagBindResponseServerSaslCreds)
