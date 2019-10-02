@@ -280,3 +280,15 @@ func (l *LDAPResult) SetDiagnosticMessage(code string) {
 func (l *LDAPResult) SetReferral(r *Referral) {
 	l.referral = r
 }
+
+func (l *LDAPMessage) SetControls(c *Controls) {
+	l.controls = c
+}
+
+func (l *SearchResultDone) SetMatchedDN(code string) {
+	l.matchedDN = LDAPDN(code)
+}
+
+func (s SearchResultEntry) Attributes() PartialAttributeList {
+	return s.attributes
+}

@@ -1,5 +1,7 @@
 package message
 
+import "fmt"
+
 type OCTETSTRING string
 type INTEGER int32 // In this RFC the max INTEGER value is 2^31 - 1, so int32 is enough
 type BOOLEAN bool
@@ -317,6 +319,88 @@ type Control struct {
 	controlType  LDAPOID
 	criticality  BOOLEAN
 	controlValue *OCTETSTRING
+}
+
+const PagedResultsControlOID = LDAPOID("1.2.840.113556.1.4.319")
+
+func (c *Control) PagedResultsControl() (*SimplePagedResultsControl, bool) {
+	if c.controlType != PagedResultsControlOID {
+		return nil, false
+	}
+	if c.controlValue == nil {
+		return nil, false
+	}
+	control := SimplePagedResultsControl{}
+
+	bytes := Bytes{
+		bytes: []byte(*c.controlValue),
+	}
+	err := bytes.ReadSubBytes(classUniversal, tagSequence, control.readComponents)
+	if err != nil {
+		return nil, false
+	}
+	return &control, true
+}
+
+//
+//        SimplePagedResultsControl ::= SEQUENCE {
+//             Size             INTEGER,
+//             Cookie           OCTETSTRING }
+type SimplePagedResultsControl struct {
+	size   INTEGER
+	cookie OCTETSTRING
+}
+
+func NewSimplePagedResultsControl(size int32, criticality bool, cookie string) Control {
+	c := Control{
+		controlType: PagedResultsControlOID,
+		criticality: BOOLEAN(criticality),
+	}
+	p := &SimplePagedResultsControl{
+		size:   INTEGER(size),
+		cookie: OCTETSTRING(cookie),
+	}
+	p.writeControlValue(&c)
+	return c
+}
+
+func (c *SimplePagedResultsControl) Size() int32 {
+	return int32(c.size)
+}
+
+func (c *SimplePagedResultsControl) Cookie() string {
+	return string(c.cookie)
+}
+
+func (c *SimplePagedResultsControl) readComponents(bytes *Bytes) error {
+	if size, err := readINTEGER(bytes); err != nil {
+		return LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
+	} else {
+		c.size = size
+	}
+
+	if cookie, err := readOCTETSTRING(bytes); err != nil {
+		return LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
+	} else {
+		c.cookie = cookie
+	}
+	return nil
+}
+
+func (s *SimplePagedResultsControl) writeControlValue(c *Control) {
+	b := Bytes{
+		offset: 8192,
+		bytes:  make([]byte, 8192),
+	}
+	s.write(&b)
+	c.controlValue = OCTETSTRING(string(b.bytes[b.offset:])).Pointer()
+}
+
+func (s *SimplePagedResultsControl) write(bytes *Bytes) (size int) {
+	size += s.cookie.write(bytes)
+	size += s.size.write(bytes)
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
 }
 
 //

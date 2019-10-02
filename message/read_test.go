@@ -2934,3 +2934,25 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 		},
 	}
 }
+
+func TestReadPageResultsControl(t *testing.T) {
+
+	expected := string([]byte{0x30, 0x05, 0x02, 0x01, 0x01, 0x04, 0x00})
+	c := &Control{
+		controlType:  PagedResultsControlOID,
+		criticality:  true,
+		controlValue: OCTETSTRING(expected).Pointer(),
+	}
+	p, ok := c.PagedResultsControl()
+	if !ok {
+		t.Fatalf("Expected valid control")
+	} else if p.size != 1 {
+		t.Errorf("Expected size=1, got=%d", p.size)
+	} else if len(p.cookie) != 0 {
+		t.Errorf("Expected Cookie='', got='%s'", p.cookie)
+	}
+	p.writeControlValue(c)
+	if expected != string(*c.controlValue) {
+		t.Errorf("Wrong controlValue: %x", *c.controlValue)
+	}
+}
