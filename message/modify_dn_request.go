@@ -85,3 +85,19 @@ func (m ModifyDNRequest) size() (size int) {
 	size += sizeTagAndLength(TagModifyDNRequest, size)
 	return
 }
+
+func (m *ModifyDNRequest) Entry() LDAPDN {
+	return m.entry
+}
+
+func (m *ModifyDNRequest) NewRDN() RelativeLDAPDN {
+	return m.newrdn
+}
+
+func (m *ModifyDNRequest) DeleteOldRDN() BOOLEAN {
+	return m.deleteoldrdn
+}
+
+func (m *ModifyDNRequest) NewSuperior() *LDAPDN {
+	return m.newSuperior
+}

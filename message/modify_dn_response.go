@@ -26,3 +26,7 @@ func (m ModifyDNResponse) write(bytes *Bytes) int {
 func (m ModifyDNResponse) size() int {
 	return LDAPResult(m).sizeTagged(TagModifyDNResponse)
 }
+
+func (m *ModifyDNResponse) SetResultCode(code int) {
+	m.resultCode = ENUMERATED(code)
+}
