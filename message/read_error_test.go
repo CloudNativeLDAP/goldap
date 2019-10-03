@@ -1,6 +1,7 @@
 package message
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -9,13 +10,18 @@ type LDAPMessageErrorTestData struct {
 	label string
 	bytes Bytes
 	err   string
+	out   *LDAPMessage
 }
 
 func TestReadLDAPMessageError(t *testing.T) {
 	for i, test := range getLDAPMessageErrorTestData() {
 		message, err := ReadLDAPMessage(&test.bytes)
 		if err == nil {
-			t.Errorf("#%d: %s\nEXPECTED ERROR MESSAGE:\n%s\nGOT A LDAP STRUCT INSTEAD:\n%#+v", i, test.label, test.err, message)
+			if test.out == nil {
+				t.Errorf("#%d: %s\nEXPECTED ERROR MESSAGE:\n%s\nGOT A LDAP STRUCT INSTEAD:\n%#+v", i, test.label, test.err, message)
+			} else if !reflect.DeepEqual(message, *test.out) {
+				t.Errorf("#%d:\nGOT:\n%#+v\nEXPECTED:\n%#+v", i, message, test.out)
+			}
 		} else if !strings.Contains(err.Error(), test.err) {
 			t.Errorf("#%d: %s\nGOT:\n%s\nEXPECTED:\n%s", i+1, test.label, err.Error(), test.err)
 		}
@@ -379,7 +385,8 @@ Expect: asn1: syntax error: ExpectTag: wrong tag value: got 4 (OCTET STRING), ex
 			err: `ReadLDAPMessage:
 ReadSubBytes:
 readComponents:
-ParseTagAndLength: asn1: structure error: superfluous leading zeros in length`,
+readTaggedControls:
+ReadSubBytes: data truncated: expecting 94 bytes at offset 64`,
 		},
 
 		{
@@ -402,11 +409,15 @@ ParseTagAndLength: asn1: structure error: superfluous leading zeros in length`,
 					0x80, 0x00,
 				},
 			},
-			err: `ReadLDAPMessage:
-ReadSubBytes:
-readComponents:
-readProtocolOp:
-ParseTagAndLength: asn1: structure error: superfluous leading zeros in length`,
+			out: &LDAPMessage{
+				messageID: MessageID(1),
+				protocolOp: BindRequest{
+					version:        0x03,
+					name:           LDAPDN(""),
+					authentication: OCTETSTRING([]byte("")),
+				},
+				controls: (*Controls)(nil),
+			},
 		},
 
 		// // Request 2: server => bind response
