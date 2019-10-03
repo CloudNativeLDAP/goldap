@@ -503,10 +503,15 @@ const SearchRequestScopeBaseObject = 0
 const SearchRequestSingleLevel = 1
 const SearchRequestHomeSubtree = 2
 
+// Subordinate Subtree Search Scope
+// https://tools.ietf.org/html/draft-sermersheim-ldap-subordinate-scope-02#section-2
+const SearchRequestSubordinateSubtree = 3
+
 var EnumeratedSearchRequestScope = map[ENUMERATED]string{
-	SearchRequestScopeBaseObject: "baseObject",
-	SearchRequestSingleLevel:     "singleLevel",
-	SearchRequestHomeSubtree:     "homeSubtree",
+	SearchRequestScopeBaseObject:    "baseObject",
+	SearchRequestSingleLevel:        "singleLevel",
+	SearchRequestHomeSubtree:        "homeSubtree",
+	SearchRequestSubordinateSubtree: "subordinateSubtree",
 }
 
 const SearchRequetDerefAliasesNeverDerefAliases = 0

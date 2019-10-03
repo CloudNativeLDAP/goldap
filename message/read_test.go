@@ -2986,6 +2986,32 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 				},
 			},
 		},
+		// Request 96: Subordinate Subtree Search Scope, https://tools.ietf.org/html/draft-sermersheim-ldap-subordinate-scope-02#section-2
+		{
+			bytes: Bytes{
+				offset: 0,
+				bytes: []byte{
+					// 3028020105632304000a01003a0100020100020100010100870b6f626a656374436c617373300304012a
+					0x30, 0x28, 0x02, 0x01, 0x05, 0x63, 0x23, 0x04, 0x00, 0x0a, 0x01, 0x03, 0x0a, 0x01, 0x00, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00, 0x01, 0x01, 0x00, 0x87, 0x0b, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x43, 0x6c, 0x61, 0x73, 0x73, 0x30, 0x03, 0x04, 0x01, 0x2a,
+				},
+			},
+			out: LDAPMessage{
+				messageID: MessageID(5),
+				protocolOp: SearchRequest{
+					baseObject:   LDAPDN(""),
+					scope:        ENUMERATED(3),
+					derefAliases: ENUMERATED(0),
+					sizeLimit:    INTEGER(0),
+					timeLimit:    INTEGER(0),
+					typesOnly:    BOOLEAN(false),
+					filter:       FilterPresent("objectClass"),
+					attributes: AttributeSelection{
+						LDAPString("*"),
+					},
+				},
+				controls: (*Controls)(nil),
+			},
+		},
 	}
 }
 
