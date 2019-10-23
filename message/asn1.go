@@ -178,9 +178,22 @@ func parseBool(bytes []byte) (ret bool, err error) {
 	// DER demands that "If the encoding represents the boolean value TRUE,
 	// its single contents octet shall have all eight bits set to one."
 	// Thus only 0 and 255 are valid encoded values.
+
+	// On the other hand, BER standard : 0 = FALSE, anything else = TRUE.
+	// And LDAP message is decorded by BER.
+	// However, RFC 4511 also says "If the value of a BOOLEAN type is true,
+	// the encoding of the value octet is set to hex "FF"":
+	// https://tools.ietf.org/html/rfc4511#section-5
+
+	// Unfortunately, go-ldap use 0x01 as TRUE because the library, go-asn1-ber doesn't
+	// follow RFC 4511.
+	// https://github.com/go-asn1-ber/asn1-ber/blob/v1.3/ber.go#L460
+	// That's why we currently need to handle 1 as TRUE.
 	switch bytes[0] {
 	case 0:
 		ret = false
+	case 1:
+		ret = true
 	case 0xff:
 		ret = true
 	default:
