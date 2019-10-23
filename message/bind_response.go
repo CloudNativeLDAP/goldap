@@ -41,6 +41,10 @@ func (response *BindResponse) SetSaslData(data *OCTETSTRING) {
 	response.serverSaslCreds = data
 }
 
+func (response *BindResponse) SetDiagnosticMessage(msg string) {
+	response.diagnosticMessage = LDAPString(msg)
+}
+
 func (response BindResponse) write(bytes *Bytes) (size int) {
 	if response.serverSaslCreds != nil {
 		size += response.serverSaslCreds.writeTagged(bytes, classContextSpecific, TagBindResponseServerSaslCreds)

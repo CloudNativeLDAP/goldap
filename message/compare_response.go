@@ -9,6 +9,10 @@ func (response *CompareResponse) SetResultCode(code int) {
 	response.resultCode = ENUMERATED(code)
 }
 
+func (response *CompareResponse) SetDiagnosticMessage(msg string) {
+	response.diagnosticMessage = LDAPString(msg)
+}
+
 func readCompareResponse(bytes *Bytes) (ret CompareResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagCompareResponse)

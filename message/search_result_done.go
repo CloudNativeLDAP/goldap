@@ -29,3 +29,6 @@ func (s SearchResultDone) size() int {
 func (l *SearchResultDone) SetResultCode(code int) {
 	l.resultCode = ENUMERATED(code)
 }
+func (l *SearchResultDone) SetDiagnosticMessage(msg string) {
+	l.diagnosticMessage = LDAPString(msg)
+}

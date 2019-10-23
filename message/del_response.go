@@ -9,6 +9,10 @@ func (del *DelResponse) SetResultCode(code int) {
 	del.resultCode = ENUMERATED(code)
 }
 
+func (l *DelResponse) SetDiagnosticMessage(msg string) {
+	l.diagnosticMessage = LDAPString(msg)
+}
+
 func readDelResponse(bytes *Bytes) (ret DelResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagDelResponse)

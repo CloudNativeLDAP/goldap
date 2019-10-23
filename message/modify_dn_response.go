@@ -30,3 +30,7 @@ func (m ModifyDNResponse) size() int {
 func (m *ModifyDNResponse) SetResultCode(code int) {
 	m.resultCode = ENUMERATED(code)
 }
+
+func (l *ModifyDNResponse) SetDiagnosticMessage(msg string) {
+	l.diagnosticMessage = LDAPString(msg)
+}
