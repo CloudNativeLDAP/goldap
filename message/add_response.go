@@ -9,6 +9,10 @@ func (l *AddResponse) SetResultCode(code int) {
 	l.resultCode = ENUMERATED(code)
 }
 
+func (l *AddResponse) SetMatchedDN(dn string) {
+	l.matchedDN = LDAPDN(dn)
+}
+
 func (l *AddResponse) SetDiagnosticMessage(msg string) {
 	l.diagnosticMessage = LDAPString(msg)
 }
