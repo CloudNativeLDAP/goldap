@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/lor00x/goldap/message"
+	"github.com/cloudldap/goldap/message"
 	"log"
 	"os"
 	"runtime/pprof"

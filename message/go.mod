@@ -1,3 +1,3 @@
-module github.com/openstandia/goldap/message
+module github.com/cloudldap/goldap/message
 
-go 1.13
+go 1.18
