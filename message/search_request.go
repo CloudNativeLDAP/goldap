@@ -161,10 +161,13 @@ func (s *SearchRequest) Filter() Filter {
 	return s.filter
 }
 func (s *SearchRequest) FilterString() string {
-	str, _ := s.decompileFilter(s.Filter())
+	str, _ := s.decompileFilter(s.Filter(), nil)
 	return str
 }
-func (s *SearchRequest) decompileFilter(packet Filter) (ret string, err error) {
+func (s *SearchRequest) FilterStringWithResolver(resolve func(packet Filter) (string, error)) (string, error) {
+	return s.decompileFilter(s.Filter(), resolve)
+}
+func (s *SearchRequest) decompileFilter(packet Filter, resolve func(packet Filter) (string, error)) (ret string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.New("error decompiling filter")
@@ -179,7 +182,7 @@ func (s *SearchRequest) decompileFilter(packet Filter) (ret string, err error) {
 	case FilterAnd:
 		ret += "&"
 		for _, child := range f {
-			childStr, err = s.decompileFilter(child)
+			childStr, err = s.decompileFilter(child, resolve)
 			if err != nil {
 				return
 			}
@@ -188,7 +191,7 @@ func (s *SearchRequest) decompileFilter(packet Filter) (ret string, err error) {
 	case FilterOr:
 		ret += "|"
 		for _, child := range f {
-			childStr, err = s.decompileFilter(child)
+			childStr, err = s.decompileFilter(child, resolve)
 			if err != nil {
 				return
 			}
@@ -196,49 +199,118 @@ func (s *SearchRequest) decompileFilter(packet Filter) (ret string, err error) {
 		}
 	case FilterNot:
 		ret += "!"
-		childStr, err = s.decompileFilter(f.Filter)
+		childStr, err = s.decompileFilter(f.Filter, resolve)
 		if err != nil {
 			return
 		}
 		ret += childStr
 
 	case FilterSubstrings:
-		ret += string(f.Type_())
-		ret += "="
-		for _, fs := range f.Substrings() {
-			switch fsv := fs.(type) {
-			case SubstringInitial:
-				ret += string(fsv) + "*"
-			case SubstringAny:
-				ret += "*" + string(fsv) + "*"
-			case SubstringFinal:
-				ret += "*" + string(fsv)
+		r, err := resolve(f)
+		if err != nil {
+			return "", err
+		}
+
+		if r != "" {
+			ret += r
+		} else {
+			ret += string(f.Type_())
+			ret += "="
+			for _, fs := range f.Substrings() {
+				switch fsv := fs.(type) {
+				case SubstringInitial:
+					ret += string(fsv) + "*"
+				case SubstringAny:
+					ret += "*" + string(fsv) + "*"
+				case SubstringFinal:
+					ret += "*" + string(fsv)
+				}
 			}
 		}
 	case FilterEqualityMatch:
-		ret += string(f.AttributeDesc())
-		ret += "="
-		ret += string(f.AssertionValue())
+		r, err := resolve(f)
+		if err != nil {
+			return "", err
+		}
+
+		if r != "" {
+			ret += r
+		} else {
+			ret += string(f.AttributeDesc())
+			ret += "="
+			ret += string(f.AssertionValue())
+		}
 	case FilterGreaterOrEqual:
-		ret += string(f.AttributeDesc())
-		ret += ">="
-		ret += string(f.AssertionValue())
+		r, err := resolve(f)
+		if err != nil {
+			return "", err
+		}
+
+		if r != "" {
+			ret += r
+		} else {
+			ret += string(f.AttributeDesc())
+			ret += ">="
+			ret += string(f.AssertionValue())
+		}
 	case FilterLessOrEqual:
-		ret += string(f.AttributeDesc())
-		ret += "<="
-		ret += string(f.AssertionValue())
+		r, err := resolve(f)
+		if err != nil {
+			return "", err
+		}
+
+		if r != "" {
+			ret += r
+		} else {
+			ret += string(f.AttributeDesc())
+			ret += "<="
+			ret += string(f.AssertionValue())
+		}
 	case FilterPresent:
-		// if 0 == len(packet.Children) {
-		// 	ret += ber.DecodeString(packet.Data.Bytes())
-		// } else {
-		// 	ret += ber.DecodeString(packet.Children[0].Data.Bytes())
-		// }
-		ret += string(f)
-		ret += "=*"
+		r, err := resolve(f)
+		if err != nil {
+			return "", err
+		}
+
+		if r != "" {
+			ret += r
+		} else {
+			// if 0 == len(packet.Children) {
+			// 	ret += ber.DecodeString(packet.Data.Bytes())
+			// } else {
+			// 	ret += ber.DecodeString(packet.Children[0].Data.Bytes())
+			// }
+			ret += string(f)
+			ret += "=*"
+		}
 	case FilterApproxMatch:
-		ret += string(f.AttributeDesc())
-		ret += "~="
-		ret += string(f.AssertionValue())
+		r, err := resolve(f)
+		if err != nil {
+			return "", err
+		}
+
+		if r != "" {
+			ret += r
+			ret += string(f.AttributeDesc())
+			ret += "~="
+			ret += string(f.AssertionValue())
+		}
+	case FilterExtensibleMatch:
+		r, err := resolve(f)
+		if err != nil {
+			return "", err
+		}
+
+		if r != "" {
+			ret += r
+		} else {
+			ret += string(*f.type_)
+			ret += ":"
+			ret += string(*f.matchingRule)
+			ret += ":"
+			ret += "="
+			ret += string(f.matchValue)
+		}
 	}
 
 	ret += ")"

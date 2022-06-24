@@ -624,6 +624,22 @@ const TagMatchingRuleAssertionType = 2
 const TagMatchingRuleAssertionMatchValue = 3
 const TagMatchingRuleAssertionDnAttributes = 4
 
+func (m *FilterExtensibleMatch) Type() *AttributeDescription {
+	return m.type_
+}
+
+func (m *FilterExtensibleMatch) MatchingRule() *MatchingRuleId {
+	return m.matchingRule
+}
+
+func (m *FilterExtensibleMatch) MatchValue() AssertionValue {
+	return m.matchValue
+}
+
+func (m *FilterExtensibleMatch) DnAttributes() BOOLEAN {
+	return m.dnAttributes
+}
+
 //
 //        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
 //             objectName      LDAPDN,
